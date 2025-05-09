@@ -7,8 +7,9 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import AuthenticatedRoute from "@/components/AuthenticatedRoute";
 import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
-import EventDetails from "./pages/EventDetails";
-import CreateEvent from "./pages/CreateEvent";
+import EventDetails from "./pages/Event/EventDetails";
+import CreateEvent from "./pages/Event/CreateEvent";
+import UpdateEvent from "./pages/Event/UpdateEvent";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import NotFound from "./pages/NotFound";
@@ -45,6 +46,14 @@ const App = () => (
               element={
                 <AuthenticatedRoute>
                   <CreateEvent />
+                </AuthenticatedRoute>
+              }
+            />
+            <Route
+              path="/events/update/:id"
+              element={
+                <AuthenticatedRoute>
+                  <UpdateEvent />
                 </AuthenticatedRoute>
               }
             />

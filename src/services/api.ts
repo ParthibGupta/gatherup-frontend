@@ -5,7 +5,8 @@ const API_URL = import.meta.env.VITE_API_URL!;
 
 interface ApiResponse<T> {
   status?: "success" | "failed";
-  data?: T;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  data?: any;
   error?: string;
   events?: Event[];
 }
@@ -105,13 +106,25 @@ export const eventApi = {
       body: JSON.stringify(event),
     });
   },
-  updateEvent: (id: string, event: Omit<Event, "id">) =>
-    request<void>(`/events/${id}`, {
+  updateEvent: (
+    id: string,
+    event: Omit<
+      Event,
+      "eventID" | "organizerID" | "createdAt" | "updatedAt" | "organizer"
+    >
+  ) =>
+    request<void>(`/events/update/${id}`, {
       method: "PUT",
       body: JSON.stringify(event),
     }),
   deleteEvent: (id: string) =>
     request<void>(`/events/${id}`, { method: "DELETE" }),
+
+  getAIDescription: (name: string, description: string) =>
+    request<void>(`/ai/description`, {
+      method: "POST",
+      body: JSON.stringify({ name, description }),
+    }),
 };
 
 // Notification API

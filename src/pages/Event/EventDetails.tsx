@@ -12,6 +12,11 @@ import { useAuth } from '@/contexts/AuthContext';
 import { format } from 'date-fns';
 import { toast } from '@/hooks/use-toast';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { GoogleMap, useLoadScript } from '@react-google-maps/api';
+import { Libraries } from '@react-google-maps/api';
+import { FastAverageColor } from 'fast-average-color';
+const libraries: Libraries = ['places', 'marker'];
+const fac = new FastAverageColor();
 
 const EventDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -22,6 +27,23 @@ const EventDetails: React.FC = () => {
   const [isJoining, setIsJoining] = useState(false);
   const [attendees, setAttendees] = useState<{ userID: string; fullName: string }[]>([]);
   const [isAttending, setIsAttending] = useState(false);
+  const [bgColor, setBgColor] = useState<string>('');
+
+  const { isLoaded } = useLoadScript({
+    googleMapsApiKey: import.meta.env.VITE_GOOGLE_API_KEY!,
+    libraries,
+  });
+
+  const getImageColor = async (imageUrl: string) => {
+    try {
+      const result = await fac.getColorAsync(imageUrl);
+      const [r, g, b] = result.value;
+      return `rgb(${r}, ${g}, ${b})`;
+    } catch (error) {
+      console.error('Error getting image color:', error);
+      return 'rgb(0, 0, 0)'; // fallback color
+    }
+  };
 
   useEffect(() => {
     const fetchEventDetails = async () => {
@@ -33,23 +55,24 @@ const EventDetails: React.FC = () => {
       }
 
       try {
-
         const response = await eventApi.getEventById(id);
-        console.log(response.data)
-
         setEvent(response.data);
-        
+
+        // Get background color from banner
+        if (response.data.bannerURL) {
+          const color = await getImageColor(response.data.bannerURL);
+          setBgColor(color);
+          console.log('Background color:', color);
+        }
+
         const attendees = response.data.eventAttendees;
         setAttendees(attendees);
-        
+
         // Check if user is attending
         if (isAuthenticated && user) {
-          console.log(user);
-          console.log(attendees.some(a => a.userID === user.id))
           setIsAttending(attendees.some(a => a.userID === user.id));
         }
       } catch (error) {
-        console.log(error.message)
         toast({
           title: "Failed to load event",
           description: "Could not retrieve event details. Please try again later.",
@@ -80,22 +103,9 @@ const EventDetails: React.FC = () => {
     setIsJoining(true);
 
     try {
-      // In a real implementation, this would be an API call
-      // For demo purposes, we'll simulate the API call
-      // await new Promise(resolve => setTimeout(resolve, 1000));
-
-
-      // const newAttendance = {
-      //   userID: user.id,
-      //   eventID: event.eventID || '',
-      //   joinedAt: new Date().toISOString(),
-      //   status: 'attended' as const,
-      // };
       const response = await attendanceApi.recordAttendance(event.eventID);
-      console.log(response);
 
       setIsAttending(true);
-      console.log(user);
       setAttendees(prev => [
         ...prev,
         { userID: user.id, fullName: user.name },
@@ -120,11 +130,8 @@ const EventDetails: React.FC = () => {
     if (!event || !user) return;
 
     try {
-      // In a real implementation, this would be an API call
-      // For demo purposes, we'll simulate the API call
       await new Promise(resolve => setTimeout(resolve, 1000));
 
-      // Remove user from attendees list for UI update
       setAttendees(attendees.filter(a => a.userID !== user.id));
       setIsAttending(false);
 
@@ -139,19 +146,6 @@ const EventDetails: React.FC = () => {
         variant: "destructive",
       });
     }
-  };
-
-
-  const generateMockAttendees = () => {
-    const names = [
-      "Alex Johnson", "Jamie Smith", "Taylor Wilson", 
-      "Jordan Lee", "Casey Brown", "Morgan Davis"
-    ];
-    
-    return names.map((name, index) => ({
-      id: `user-${index + 1}`,
-      name
-    }));
   };
 
   const getInitials = (name: string): string => {
@@ -184,7 +178,23 @@ const EventDetails: React.FC = () => {
   const isUpcoming = eventDate > new Date();
 
   return (
-    <div className="min-h-screen bg-background">
+<div 
+  className="min-h-screen bg-background"
+  style={{
+    backgroundColor: 'rgb(155 97 255 / 0.03)',
+    backgroundImage: `
+      radial-gradient(circle at 100% 100%, transparent 18%, rgb(155 97 255 / 0.08) 16%, rgb(155 97 255 / 0.08) 20%, transparent 21%, transparent 100%),
+      radial-gradient(circle at 0% 100%, transparent 18%, rgb(155 97 255 / 0.08) 16%, rgb(155 97 255 / 0.08) 20%, transparent 21%, transparent 100%),
+      radial-gradient(circle at 100% 0%, transparent 18%, rgb(155 97 255 / 0.08) 16%, rgb(155 97 255 / 0.08) 20%, transparent 21%, transparent 100%),
+      radial-gradient(circle at 0% 0%, transparent 18%, rgb(155 97 255 / 0.08) 16%, rgb(155 97 255 / 0.08) 20%, transparent 21%, transparent 100%),
+      conic-gradient(from 90deg at 50% 50%, rgb(155 97 255 / 0.05) 0%, rgb(155 97 255 / 0.1) 25%, rgb(155 97 255 / 0.05) 50%, rgb(155 97 255 / 0.1) 75%, rgb(155 97 255 / 0.05) 100%)
+    `,
+    backgroundSize: `50px 50px, 50px 50px, 50px 50px, 50px 50px, 100% 100%`,
+    backgroundPosition: `0 0, 0 0, 0 0, 0 0, center center`,
+    backgroundRepeat: 'repeat, repeat, repeat, repeat, no-repeat',
+    backgroundBlendMode: 'multiply'
+  }}
+>
       <Navbar />
       
       <div className="container py-8">
@@ -216,12 +226,14 @@ const EventDetails: React.FC = () => {
                   src={event.bannerURL}
                   alt={`${event.name} Banner`}
                   className="h-full w-full object-cover"
+                  style={{ backgroundColor: bgColor }}
                 />
               </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Card>
-                  <CardContent className="p-4 flex items-center gap-3">
+              <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
+              <Card>
+                <CardContent className="p-4 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
                     <div className="bg-primary/10 rounded-full p-2 text-primary">
                       <Calendar className="h-5 w-5" />
                     </div>
@@ -230,20 +242,15 @@ const EventDetails: React.FC = () => {
                       <div className="text-sm text-muted-foreground">{format(eventDate, 'PPPP')}</div>
                       <div className="text-sm text-muted-foreground">{format(eventDate, 'p')}</div>
                     </div>
-                  </CardContent>
-                </Card>
+                  </div>
+                  <Button variant="outline" size="sm" className="gap-2 w-[200px]">
+                    
+                    Contact Organizer
+                  </Button>
+                </CardContent>
+              </Card>
                 
-                <Card>
-                  <CardContent className="p-4 flex items-center gap-3">
-                    <div className="bg-primary/10 rounded-full p-2 text-primary">
-                      <MapPin className="h-5 w-5" />
-                    </div>
-                    <div>
-                      <div className="text-sm font-medium">Location</div>
-                      <div className="text-sm text-muted-foreground">{event.locationTitle}</div>
-                    </div>
-                  </CardContent>
-                </Card>
+                
               </div>
               
               <Card>
@@ -256,6 +263,7 @@ const EventDetails: React.FC = () => {
           </div>
           
           <div className="space-y-6">
+            
             <Card>
               <CardContent className="p-6">
                 <div className="mb-4">
@@ -315,8 +323,68 @@ const EventDetails: React.FC = () => {
                     <p className="text-muted-foreground">This event has ended</p>
                   </div>
                 )}
+
+
+              {event.organizer.userID === user?.id ? (
+                <div className='space-y-4'>
+
+                  <Button 
+                    className="w-full mt-4" 
+                    onClick={() =>  window.location.href = `/events/update/${event.eventID}`}
+                  > 
+                    Make Changes to Event
+                  </Button>
+                </div>
+              ) : null}
               </CardContent>
             </Card>
+
+            <Card>
+                  <CardContent className="space-y-4">
+                    <div className="p-4 flex items-center gap-3">
+                      <div className="bg-primary/10 rounded-full p-2 text-primary">
+                        <MapPin className="h-5 w-5" />
+                      </div>
+                      <div>
+                        <div className="text-sm font-medium">Location</div>
+                        <div className="text-sm text-muted-foreground">{event.locationTitle}</div>
+                      </div>
+                    </div>
+                    
+                    {/* Map Container */}
+                    <div className="h-[200px] w-full rounded-md overflow-hidden">
+                      {isLoaded && event.location && (
+                        <GoogleMap
+                          center={parseLocation(event.location)}
+                          zoom={15}
+                          mapContainerStyle={{ width: '100%', height: '100%' }}
+                          options={{
+                            disableDefaultUI: true,
+                            zoomControl: true,
+                            mapId: import.meta.env.VITE_GOOGLE_MAP_ID, // Add this line
+                          }}
+                          onLoad={(map) => {
+                            // Check if AdvancedMarkerElement is available
+                            if (window.google.maps.marker?.AdvancedMarkerElement) {
+                              new window.google.maps.marker.AdvancedMarkerElement({
+                                position: parseLocation(event.location),
+                                map: map,
+                                title: event.locationTitle,
+                              });
+                            } else {
+                              // Fallback to regular Marker if AdvancedMarkerElement is not available
+                              new window.google.maps.Marker({
+                                position: parseLocation(event.location),
+                                map: map,
+                                title: event.locationTitle,
+                              });
+                            }
+                          }}
+                        />
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
             
             <Card>
               <CardContent className="p-6">
@@ -347,23 +415,27 @@ const EventDetails: React.FC = () => {
     </div>
   );
 };
+const parseLocation = (location: string | number[]) => {
+  try {
+    if (Array.isArray(location)) {
+      const [lng, lat] = location;
+      return { lat, lng };
+    }
+    if(!location.includes('{') || !location.includes('}')) {
+      return { lat: -33.8688, lng: 151.2093 }; // Default to Sydney coordinates
+    }
+    // Remove the curly braces and split the string
+    const cleaned = location.replace(/[{}]/g, '');
+    const [lng, lat] = cleaned.split(',').map(coord => 
+      Number(coord.replace(/"/g, ''))
+    );
 
-// // Missing Check icon import
-// const Check = ({ className }: { className?: string }) => (
-//   <svg
-//     xmlns="http://www.w3.org/2000/svg"
-//     width="24"
-//     height="24"
-//     viewBox="0 0 24 24"
-//     fill="none"
-//     stroke="currentColor"
-//     strokeWidth="2"
-//     strokeLinecap="round"
-//     strokeLinejoin="round"
-//     className={className}
-//   >
-//     <polyline points="20 6 9 17 4 12"></polyline>
-//   </svg>
-// );
+    return { lat, lng };
+  } catch (error) {
+    console.error('Error parsing location:', error);
+    // Default to Sydney coordinates if parsing fails
+    return { lat: -33.8688, lng: 151.2093 };
+  }
+};
 
 export default EventDetails;
