@@ -15,6 +15,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { GoogleMap, useLoadScript } from '@react-google-maps/api';
 import { Libraries } from '@react-google-maps/api';
 import { FastAverageColor } from 'fast-average-color';
+import ContactOrganizerModal from '@/components/ContactOrganizerModal';
 const libraries: Libraries = ['places', 'marker'];
 const fac = new FastAverageColor();
 
@@ -243,10 +244,8 @@ const EventDetails: React.FC = () => {
                       <div className="text-sm text-muted-foreground">{format(eventDate, 'p')}</div>
                     </div>
                   </div>
-                  <Button variant="outline" size="sm" className="gap-2 w-[200px]">
-                    
-                    Contact Organizer
-                  </Button>
+                  {(isAuthenticated && isAttending)? (<ContactOrganizerModal event={event} attendee={{fullName: user.name, email: user.email}}/>) : ""}
+                  
                 </CardContent>
               </Card>
                 

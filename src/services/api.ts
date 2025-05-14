@@ -193,3 +193,46 @@ export const attendanceApi = {
       method: "POST",
     }),
 };
+
+export const emailApi = {
+  sendContactRequest: async (
+    attendee: { fullName: string; email: string },
+    organizer: { fullName: string; email: string },
+    message: string,
+    event: Event,
+  ) => {
+    try {
+      const response = await request<any>(`/email/contactOrganizer`, {
+        method: "POST",
+        body: JSON.stringify({
+          event,
+          message,
+          attendee,
+          organizer,
+        }),
+      });
+
+      if (response.status === "success") {
+        toast({
+          title: "Message Sent",
+          description: "Your message has been sent to the organizer successfully.",
+        });
+        return true;
+      } else {
+         // Handle error response
+        toast({
+          title: "Failed to Send Message",
+          description: response.error || "An error occurred while sending the message.",
+          variant: "destructive",
+        });
+        return false;
+      }
+    } catch (error) {
+      toast({
+        title: "Network Error",
+        description: "Unable to send the message. Please try again later.",
+        variant: "destructive",
+      });
+    }
+  },
+}
