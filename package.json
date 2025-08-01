@@ -57,6 +57,8 @@
     "embla-carousel-react": "^8.3.0",
     "fast-average-color": "^9.5.0",
     "input-otp": "^1.2.4",
+    "jspdf": "^3.0.1",
+    "jspdf-autotable": "^5.0.2",
     "lodash": "^4.17.21",
     "lucide-react": "^0.462.0",
     "next-themes": "^0.3.0",

@@ -16,6 +16,7 @@ import { GoogleMap, useLoadScript } from '@react-google-maps/api';
 import { Libraries } from '@react-google-maps/api';
 import { FastAverageColor } from 'fast-average-color';
 import ContactOrganizerModal from '@/components/ContactOrganizerModal';
+import SummaryExport from '@/components/event/SummaryExport';
 const libraries: Libraries = ['places', 'marker'];
 const fac = new FastAverageColor();
 
@@ -26,7 +27,7 @@ const EventDetails: React.FC = () => {
   const [event, setEvent] = useState<Event | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isJoining, setIsJoining] = useState(false);
-  const [attendees, setAttendees] = useState<{ userID: string; fullName: string }[]>([]);
+  const [attendees, setAttendees] = useState<{ userID: string; fullName: string; email: string }[]>([]);
   const [isAttending, setIsAttending] = useState(false);
   const [bgColor, setBgColor] = useState<string>('');
 
@@ -109,7 +110,7 @@ const EventDetails: React.FC = () => {
       setIsAttending(true);
       setAttendees(prev => [
         ...prev,
-        { userID: user.id, fullName: user.name },
+        { userID: user.id, fullName: user.name , email: user.email },
       ]);
 
       toast({
@@ -177,6 +178,7 @@ const EventDetails: React.FC = () => {
 
   const eventDate = new Date(event.eventDate);
   const isUpcoming = eventDate > new Date();
+
 
   return (
 <div 
@@ -325,7 +327,7 @@ const EventDetails: React.FC = () => {
 
 
               {event.organizer.userID === user?.id ? (
-                <div className='space-y-4'>
+                <div className='space-y-4' style={{ display: 'flex', flexDirection: 'column' }}>
 
                   <Button 
                     className="w-full mt-4" 
@@ -333,7 +335,9 @@ const EventDetails: React.FC = () => {
                   > 
                     Make Changes to Event
                   </Button>
+                  <SummaryExport event={event} />
                 </div>
+                
               ) : null}
               </CardContent>
             </Card>

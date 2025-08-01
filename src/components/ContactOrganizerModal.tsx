@@ -1,9 +1,8 @@
 import React, { useState } from "react";
-import { useNavigate } from 'react-router-dom';
 import { Popover, PopoverTrigger, PopoverContent } from "./ui/popover";
 import { Button } from "./ui/button";
 import { emailApi, Event } from "@/services/api";
-import { set } from "date-fns";
+
 
 interface ContactOrganizerModalProps {
   event: Event
@@ -14,12 +13,25 @@ interface ContactOrganizerModalProps {
 } 
 
 const ContactOrganizerModal: React.FC<ContactOrganizerModalProps> = ({event, attendee}) => {
-  const navigate = useNavigate();
   const [message, setMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
-  
+  interface Attendee {
+  fullName: string;
+  email: string;
+}
+
+interface EventDetails {
+  name: string;
+  eventDate: string;
+  locationTitle: string;
+  organizer: {
+    fullName: string;
+    email: string;
+  };
+  attendees: Attendee[];
+}
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setMessage(e.target.value);
   };

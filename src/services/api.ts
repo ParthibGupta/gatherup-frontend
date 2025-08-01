@@ -81,7 +81,7 @@ export interface Event {
   organizer: any; // eslint-disable-line @typescript-eslint/no-explicit-any
   createdAt: string;
   updatedAt?: string;
-  eventAttendees?: { userID: string; fullName: string }[];
+  eventAttendees?: { userID: string; fullName: string; email: string }[];
 }
 
 export const eventApi = {
