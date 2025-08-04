@@ -3,10 +3,11 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Ticket as TicketIcon, Download, QrCode } from 'lucide-react';
+import { Ticket as TicketIcon, Eye, QrCode } from 'lucide-react';
 import { Event, ticketApi, Ticket } from '@/services/api';
 import { toast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
+import TicketDetailsPage from '@/components/TicketDetailsPage';
 
 interface TicketPurchaseProps {
   event: Event;
@@ -21,6 +22,7 @@ const TicketPurchase: React.FC<TicketPurchaseProps> = ({
   const [userTicket, setUserTicket] = useState<Ticket | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [showQRDialog, setShowQRDialog] = useState(false);
+  const [showTicketDetails, setShowTicketDetails] = useState(false);
 
   const fetchUserTicket = useCallback(async () => {
     setIsLoading(true);
@@ -45,23 +47,17 @@ const TicketPurchase: React.FC<TicketPurchaseProps> = ({
     }
   }, [event.ticketingEnabled, isAttending, fetchUserTicket]);
 
-  const handleDownloadTicket = () => {
-    if (userTicket && userTicket.pdfUrl) {
-      // Redirect to the PDF URL on the backend
-      const API_URL = import.meta.env.VITE_API_URL!;
-      window.open(`${API_URL}/${userTicket.pdfUrl}`, '_blank');
-      
+  const handleViewTicket = () => {
+    if (!userTicket || !user) {
       toast({
-        title: "Download Started",
-        description: `Downloading ticket for ${event.name}`,
-      });
-    } else {
-      toast({
-        title: "Download Error",
-        description: "PDF not available for this ticket",
+        title: "Error",
+        description: "Ticket or user information not available",
         variant: "destructive",
       });
+      return;
     }
+
+    setShowTicketDetails(true);
   };
 
   const handleShowQR = () => {
@@ -139,11 +135,11 @@ const TicketPurchase: React.FC<TicketPurchaseProps> = ({
             {(userTicket.status === 'confirmed' || userTicket.status !== 'revoked') && (
               <div className="flex gap-2 pt-4">
                 <Button 
-                  onClick={handleDownloadTicket}
+                  onClick={handleViewTicket}
                   className="flex-1"
                 >
-                  <Download className="h-4 w-4 mr-2" />
-                  Download PDF
+                  <Eye className="h-4 w-4 mr-2" />
+                  View Ticket
                 </Button>
                 <Button 
                   variant="outline"
@@ -227,6 +223,20 @@ const TicketPurchase: React.FC<TicketPurchaseProps> = ({
                 <p>Show this QR code at the event entrance for check-in</p>
               </div>
             </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Ticket Details Modal */}
+      <Dialog open={showTicketDetails} onOpenChange={setShowTicketDetails}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-auto p-0">
+          {userTicket && user && (
+            <TicketDetailsPage
+              ticket={userTicket}
+              attendeeName={user.name}
+              attendeeEmail={user.email}
+              onBack={() => setShowTicketDetails(false)}
+            />
           )}
         </DialogContent>
       </Dialog>

@@ -3,16 +3,20 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Ticket as TicketIcon, Download, QrCode, Calendar, MapPin, X } from 'lucide-react';
+import { Ticket as TicketIcon, Eye, QrCode, Calendar, MapPin } from 'lucide-react';
 import { Ticket, ticketApi } from '@/services/api';
 import { toast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
+import { useAuth } from '@/contexts/AuthContext';
+import TicketDetailsPage from '@/components/TicketDetailsPage';
 
 const MyTickets: React.FC = () => {
+  const { user } = useAuth();
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
   const [showQRDialog, setShowQRDialog] = useState(false);
+  const [showTicketDetails, setShowTicketDetails] = useState(false);
 
   useEffect(() => {
     fetchMyTickets();
@@ -67,23 +71,18 @@ const MyTickets: React.FC = () => {
     }
   };
 
-  const handleDownloadTicket = (ticket: Ticket) => {
-    if (ticket.pdfUrl) {
-      // Redirect to the PDF URL on the backend
-      const API_URL = import.meta.env.VITE_API_URL!;
-      window.open(`${API_URL}/${ticket.pdfUrl}`, '_blank');
-      
+  const handleViewTicket = (ticket: Ticket) => {
+    if (!user) {
       toast({
-        title: "Download Started",
-        description: `Downloading ticket for ${ticket.event?.name}`,
-      });
-    } else {
-      toast({
-        title: "Download Error",
-        description: "PDF not available for this ticket",
+        title: "Error",
+        description: "User information not available",
         variant: "destructive",
       });
+      return;
     }
+
+    setSelectedTicket(ticket);
+    setShowTicketDetails(true);
   };
 
   if (isLoading) {
@@ -150,11 +149,11 @@ const MyTickets: React.FC = () => {
                   {ticket.status === 'confirmed' && (
                     <>
                       <Button 
-                        onClick={() => handleDownloadTicket(ticket)}
+                        onClick={() => handleViewTicket(ticket)}
                         className="flex-1"
                       >
-                        <Download className="h-4 w-4 mr-2" />
-                        Download PDF
+                        <Eye className="h-4 w-4 mr-2" />
+                        View Ticket
                       </Button>
                       <Button 
                         variant="outline"
@@ -226,6 +225,20 @@ const MyTickets: React.FC = () => {
                 <p>Show this QR code at the event entrance for check-in</p>
               </div>
             </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Ticket Details Modal */}
+      <Dialog open={showTicketDetails} onOpenChange={setShowTicketDetails}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-auto p-0">
+          {selectedTicket && user && (
+            <TicketDetailsPage
+              ticket={selectedTicket}
+              attendeeName={user.name}
+              attendeeEmail={user.email}
+              onBack={() => setShowTicketDetails(false)}
+            />
           )}
         </DialogContent>
       </Dialog>
