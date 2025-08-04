@@ -21,6 +21,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
+import { Separator } from '@/components/ui/separator';
 import {
   Popover,
   PopoverContent,
@@ -66,6 +68,8 @@ const CreateEvent: React.FC = () => {
       lng: 0
     },
     bannerURL: '',
+    ticketingEnabled: false,
+    ticketPrice: 0,
   });
   const [errors, setErrors] = useState({
     name: '',
@@ -243,6 +247,8 @@ const CreateEvent: React.FC = () => {
         capacity: formData.capacity,
         bannerURL:formData.bannerURL,
         category: formData.category,
+        ticketingEnabled: formData.ticketingEnabled,
+        ticketPrice: formData.ticketPrice,
       };
       
       const response = await eventApi.createEvent(eventData);
@@ -587,6 +593,51 @@ const CreateEvent: React.FC = () => {
                       onChange={handleInputChange}
                     />
                   </div>
+                </div>
+
+                <Separator className="my-6" />
+
+                {/* Ticketing Section */}
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-lg font-medium">Event Ticketing</h3>
+                      <p className="text-sm text-muted-foreground">
+                        Enable ticketing for your event (currently free events only)
+                      </p>
+                    </div>
+                    <Switch
+                      checked={formData.ticketingEnabled}
+                      onCheckedChange={(checked) => 
+                        setFormData({ ...formData, ticketingEnabled: checked })
+                      }
+                    />
+                  </div>
+
+                  {formData.ticketingEnabled && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 border rounded-lg bg-muted/50">
+                      <div className="space-y-2">
+                        <label htmlFor="ticketPrice" className="block text-sm font-medium">
+                          Ticket Price ($)
+                        </label>
+                        <Input
+                          id="ticketPrice"
+                          name="ticketPrice"
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          value={formData.ticketPrice}
+                          onChange={(e) => 
+                            setFormData({ ...formData, ticketPrice: parseFloat(e.target.value) || 0 })
+                          }
+                          placeholder="0.00"
+                        />
+                        <p className="text-xs text-muted-foreground">
+                          Currently only $0.00 (free) events are supported. One ticket per user.
+                        </p>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {formData.location.lat !== 0 && (

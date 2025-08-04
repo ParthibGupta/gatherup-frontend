@@ -59,7 +59,7 @@ const SummaryExport: React.FC<SummaryExportProps> = ({event}) => {
   };
 
   return (
-    <Button className="w-full mt-4" onClick={downloadSummary}>
+    <Button className="w-full shadow-md" onClick={downloadSummary}>
       Download Summary
     </Button> 
   );

@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, MapPin, Clock, Users, ArrowLeft, User, Check } from 'lucide-react';
+import { Calendar, MapPin, Clock, Users, ArrowLeft, User, Check, UserPlus, Ticket } from 'lucide-react';
 import { eventApi, Event, attendanceApi } from '@/services/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { format } from 'date-fns';
@@ -17,6 +17,7 @@ import { Libraries } from '@react-google-maps/api';
 import { FastAverageColor } from 'fast-average-color';
 import ContactOrganizerModal from '@/components/ContactOrganizerModal';
 import SummaryExport from '@/components/event/SummaryExport';
+import TicketPurchase from '@/components/TicketPurchase';
 const libraries: Libraries = ['places', 'marker'];
 const fac = new FastAverageColor();
 
@@ -27,6 +28,7 @@ const EventDetails: React.FC = () => {
   const [event, setEvent] = useState<Event | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isJoining, setIsJoining] = useState(false);
+  const [joinStage, setJoinStage] = useState<'joining' | 'ticket' | ''>('');
   const [attendees, setAttendees] = useState<{ userID: string; fullName: string; email: string }[]>([]);
   const [isAttending, setIsAttending] = useState(false);
   const [bgColor, setBgColor] = useState<string>('');
@@ -103,8 +105,15 @@ const EventDetails: React.FC = () => {
     if (!event || !user) return;
 
     setIsJoining(true);
+    setJoinStage('joining');
 
     try {
+      // Stage 1: Joining Event (2 seconds)
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      // Stage 2: Issuing Ticket
+      setJoinStage('ticket');
+      
       const response = await attendanceApi.recordAttendance(event.eventID);
 
       setIsAttending(true);
@@ -125,6 +134,7 @@ const EventDetails: React.FC = () => {
       });
     } finally {
       setIsJoining(false);
+      setJoinStage('');
     }
   };
 
@@ -309,7 +319,8 @@ const EventDetails: React.FC = () => {
                         disabled={isJoining || attendees.length >= event.capacity}
                         onClick={handleJoinEvent}
                       >
-                        {isJoining ? "Joining..." : 
+                        {isJoining ? 
+                          (joinStage === 'joining' ? "Joining Event..." : "Issuing Ticket...") : 
                           attendees.length >= event.capacity ? "Event Full" : "Join Event"}
                       </Button>
                       {attendees.length >= event.capacity && (
@@ -333,7 +344,7 @@ const EventDetails: React.FC = () => {
                     className="w-full mt-4" 
                     onClick={() =>  window.location.href = `/events/update/${event.eventID}`}
                   > 
-                    Make Changes to Event
+                    Manage Event
                   </Button>
                   <SummaryExport event={event} />
                 </div>
@@ -341,6 +352,14 @@ const EventDetails: React.FC = () => {
               ) : null}
               </CardContent>
             </Card>
+
+            {/* Ticket Purchase Section */}
+            {event.ticketingEnabled && (
+              <TicketPurchase 
+                event={event} 
+                isAttending={isAttending}
+              />
+            )}
 
             <Card>
                   <CardContent className="space-y-4">
@@ -415,6 +434,84 @@ const EventDetails: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Join Event Loading Overlay */}
+      {isJoining && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center">
+          <div className="bg-background rounded-xl p-8 max-w-sm w-full mx-4 border shadow-2xl">
+            <div className="text-center space-y-6">
+              <div className="relative">
+                <div className="w-20 h-20 mx-auto bg-primary/10 rounded-full flex items-center justify-center mb-4 relative overflow-hidden">
+                  <div className="absolute inset-0 bg-primary/5 rounded-full animate-ping"></div>
+                  {joinStage === 'joining' ? (
+                    <UserPlus className="w-8 h-8 text-primary z-10" />
+                  ) : (
+                    <Ticket className="w-8 h-8 text-primary z-10" />
+                  )}
+                  <div className="absolute inset-2 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+                </div>
+              </div>
+              
+              <div className="space-y-2">
+                <h3 className="text-xl font-semibold">
+                  {joinStage === 'joining' ? 'Joining Event...' : 'Issuing Ticket...'}
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  {joinStage === 'joining' 
+                    ? 'Adding you to the event attendees' 
+                    : 'Generating your event ticket with QR code'
+                  }
+                </p>
+              </div>
+              
+              {/* Progress Steps */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-center space-x-3">
+                  <div className="flex items-center space-x-2">
+                    <div className={`w-4 h-4 rounded-full transition-all duration-500 flex items-center justify-center ${
+                      joinStage === 'joining' ? 'bg-primary animate-pulse' : 'bg-primary'
+                    }`}>
+                      {joinStage !== 'joining' && <Check className="w-2.5 h-2.5 text-white" />}
+                    </div>
+                    <span className={`text-xs transition-colors ${
+                      joinStage === 'joining' ? 'text-primary font-medium' : 'text-muted-foreground'
+                    }`}>
+                      Join Event
+                    </span>
+                  </div>
+                  
+                  <div className="flex-1 h-0.5 bg-muted mx-2">
+                    <div className={`h-full bg-primary transition-all duration-700 ${
+                      joinStage === 'ticket' ? 'w-full' : 'w-0'
+                    }`}></div>
+                  </div>
+                  
+                  <div className="flex items-center space-x-2">
+                    <div className={`w-4 h-4 rounded-full transition-all duration-500 flex items-center justify-center ${
+                      joinStage === 'ticket' ? 'bg-primary animate-pulse' : 'bg-muted'
+                    }`}>
+                      {joinStage === 'ticket' && <div className="w-2 h-2 bg-white rounded-full animate-pulse" />}
+                    </div>
+                    <span className={`text-xs transition-colors ${
+                      joinStage === 'ticket' ? 'text-primary font-medium' : 'text-muted-foreground'
+                    }`}>
+                      Get Ticket
+                    </span>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Estimated time */}
+              <div className="text-xs text-muted-foreground bg-muted/30 rounded-lg p-3">
+                <div className="flex items-center justify-center gap-1">
+                  <Clock className="w-3 h-3" />
+                  <span>This usually takes a few seconds</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

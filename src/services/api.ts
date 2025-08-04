@@ -9,6 +9,7 @@ interface ApiResponse<T> {
   data?: any;
   error?: string;
   events?: Event[];
+  tickets?: Ticket[];
 }
 
 async function handleResponse<T>(response: Response): Promise<ApiResponse<T>> {
@@ -82,6 +83,10 @@ export interface Event {
   createdAt: string;
   updatedAt?: string;
   eventAttendees?: { userID: string; fullName: string; email: string }[];
+  // Ticketing fields
+  ticketingEnabled?: boolean;
+  ticketPrice?: number;
+  maxTicketsPerUser?: number;
 }
 
 export const eventApi = {
@@ -199,30 +204,35 @@ export const emailApi = {
     attendee: { fullName: string; email: string },
     organizer: { fullName: string; email: string },
     message: string,
-    event: Event,
+    event: Event
   ) => {
     try {
-      const response = await request<any>(`/email/contactOrganizer`, {
-        method: "POST",
-        body: JSON.stringify({
-          event,
-          message,
-          attendee,
-          organizer,
-        }),
-      });
+      const response = await request<{ success: boolean }>(
+        `/email/contactOrganizer`,
+        {
+          method: "POST",
+          body: JSON.stringify({
+            event,
+            message,
+            attendee,
+            organizer,
+          }),
+        }
+      );
 
       if (response.status === "success") {
         toast({
           title: "Message Sent",
-          description: "Your message has been sent to the organizer successfully.",
+          description:
+            "Your message has been sent to the organizer successfully.",
         });
         return true;
       } else {
-         // Handle error response
+        // Handle error response
         toast({
           title: "Failed to Send Message",
-          description: response.error || "An error occurred while sending the message.",
+          description:
+            response.error || "An error occurred while sending the message.",
           variant: "destructive",
         });
         return false;
@@ -235,4 +245,48 @@ export const emailApi = {
       });
     }
   },
+};
+
+// Ticket API
+export interface Ticket {
+  ticketID: string;
+  ticketNumber: string;
+  status: "confirmed" | "revoked" | "used" | "pending";
+  purchaseDate: string;
+  usedAt?: string | null;
+  pdfUrl?: string;
+  qrCode?: string;
+  event?: {
+    eventID: string;
+    name: string;
+    eventDate: string;
+    location: string;
+  };
+  user?: { fullName: string; email: string };
 }
+
+export const ticketApi = {
+  purchaseTickets: (eventID: string, quantity: number) =>
+    request<{ tickets: Ticket[] }>(`/tickets/events/${eventID}/tickets`, {
+      method: "POST",
+      body: JSON.stringify({ quantity }),
+    }),
+  getMyTickets: () => request<{ tickets: Ticket[] }>("/tickets/my-tickets"),
+  verifyTicket: (ticketNumber: string) =>
+    request<Ticket>(`/tickets/verify/${ticketNumber}`),
+  useTicket: (ticketNumber: string) =>
+    request<void>(`/tickets/use/${ticketNumber}`, {
+      method: "POST",
+    }),
+  getEventTickets: (eventID: string) =>
+    request<Ticket[]>(`/tickets/events/${eventID}/tickets`),
+  revokeTicket: (ticketID: string) =>
+    request<void>(`/tickets/tickets/${ticketID}/revoke`, {
+      method: "POST",
+    }),
+  approveTicket: (ticketID: string, approved: boolean) =>
+    request<void>(`/tickets/tickets/${ticketID}/approve`, {
+      method: "POST",
+      body: JSON.stringify({ approved }),
+    }),
+};

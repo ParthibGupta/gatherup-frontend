@@ -10,6 +10,7 @@ import Dashboard from "./pages/Dashboard";
 import EventDetails from "./pages/Event/EventDetails";
 import CreateEvent from "./pages/Event/CreateEvent";
 import UpdateEvent from "./pages/Event/UpdateEvent";
+import MyTicketsPage from "./pages/MyTickets";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import NotFound from "./pages/NotFound";
@@ -54,6 +55,13 @@ const App = () => (
               element={
                 <AuthenticatedRoute>
                   <UpdateEvent />
+                </AuthenticatedRoute>
+              }
+            />              <Route
+              path="/my-tickets"
+              element={
+                <AuthenticatedRoute>
+                  <MyTicketsPage />
                 </AuthenticatedRoute>
               }
             />

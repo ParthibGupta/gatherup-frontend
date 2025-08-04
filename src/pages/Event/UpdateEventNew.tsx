@@ -54,6 +54,7 @@ const UpdateEvent: React.FC = () => {
     location: [],
     ticketingEnabled: false,
     ticketPrice: 0,
+    maxTicketsPerUser: 5,
   });
 
   const [errors, setErrors] = useState({
@@ -105,6 +106,7 @@ const UpdateEvent: React.FC = () => {
           location: event.location,
           ticketingEnabled: event.ticketingEnabled || false,
           ticketPrice: event.ticketPrice || 0,
+          maxTicketsPerUser: event.maxTicketsPerUser || 5,
         });
       } catch (error) {
         toast({
@@ -243,6 +245,7 @@ const UpdateEvent: React.FC = () => {
         category: formData.category,
         ticketingEnabled: formData.ticketingEnabled,
         ticketPrice: formData.ticketPrice,
+        maxTicketsPerUser: formData.maxTicketsPerUser,
       };
 
       const response = await eventApi.updateEvent(id, eventData);
