@@ -12,7 +12,7 @@ import EventCard from '@/components/EventCard';
 import { set } from 'date-fns';
 
 const Dashboard: React.FC = () => {
-  const { isAuthenticated, user, loading } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [organizedEvents, setorganizedEvents] = useState<Event[]>([]);
