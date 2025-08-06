@@ -290,3 +290,25 @@ export const ticketApi = {
       body: JSON.stringify({ approved }),
     }),
 };
+
+export interface Profile {
+  userID: string;
+  userName: string;
+  fullName: string;
+  email: string;
+  userDescription?: string;
+  location?: [];
+  createdAt: string;
+  updatedAt?: string;
+};
+
+export const profileApi = {
+  getUserProfile: () => request<Profile>(`/user/profile/`, {
+    method: "GET",
+  }),
+  updateProfile: (profile: Omit<Profile, "userID" | "location" | "createdAt" | "updatedAt">) =>
+    request<void>(`/user/profile/update/`, {
+      method: "PUT",
+      body: JSON.stringify(profile),
+  }),
+};

@@ -14,6 +14,8 @@ import MyTicketsPage from "./pages/MyTickets";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import NotFound from "./pages/NotFound";
+import Profile from "./pages/Profile/Profile";
+import UpdateProfile from "./pages/Profile/UpdateProfile";
 
 const queryClient = new QueryClient();
 
@@ -57,11 +59,28 @@ const App = () => (
                   <UpdateEvent />
                 </AuthenticatedRoute>
               }
-            />              <Route
+            />              
+            <Route
               path="/my-tickets"
               element={
                 <AuthenticatedRoute>
                   <MyTicketsPage />
+                </AuthenticatedRoute>
+              }
+            />
+            <Route
+              path="/profile"
+              element={
+                <AuthenticatedRoute>
+                  <Profile />
+                </AuthenticatedRoute>
+              }
+            />
+            <Route
+              path="/profile/update"
+              element={
+                <AuthenticatedRoute>
+                  <UpdateProfile />
                 </AuthenticatedRoute>
               }
             />
