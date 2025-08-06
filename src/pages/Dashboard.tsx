@@ -9,6 +9,7 @@ import { Calendar, Clock, Plus, User } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { notificationApi, Notification, eventApi, Event } from '@/services/api';
 import EventCard from '@/components/EventCard';
+import { Skeleton } from '@/components/ui/skeleton';
 import { set } from 'date-fns';
 
 const Dashboard: React.FC = () => {
@@ -58,6 +59,22 @@ const Dashboard: React.FC = () => {
     setNotifications(notifications.filter(notification => notification.id !== id));
   };
 
+  const renderEventSkeleton = () => (
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {Array.from({ length: 4 }).map((_, i) => (
+        <div key={i} className="border rounded-lg overflow-hidden">
+          <Skeleton className="h-40 w-full" />
+          <div className="p-4">
+            <Skeleton className="h-6 w-3/4 mb-2" />
+            <Skeleton className="h-4 w-full mb-1" />
+            <Skeleton className="h-4 w-2/3 mb-2" />
+            <Skeleton className="h-4 w-1/2" />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+
 
 
   return (
@@ -90,7 +107,9 @@ const Dashboard: React.FC = () => {
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    {joinedEvents.length === 0 ? (
+                    {isLoading ? (
+                      renderEventSkeleton()
+                    ) : joinedEvents.length === 0 ? (
                       <div className="text-center py-6">
                         <Clock className="mx-auto h-10 w-10 text-muted-foreground mb-2" />
                         <p className="text-muted-foreground">No upcoming events</p>
@@ -122,7 +141,9 @@ const Dashboard: React.FC = () => {
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    {organizedEvents.length === 0 ? (
+                    {isLoading ? (
+                      renderEventSkeleton()
+                    ) : organizedEvents.length === 0 ? (
                       <div className="text-center py-6">
                         <Calendar className="mx-auto h-10 w-10 text-muted-foreground mb-2" />
                         <p className="text-muted-foreground">You haven't created any events yet</p>

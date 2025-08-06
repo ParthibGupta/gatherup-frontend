@@ -38,38 +38,34 @@ const HomePage: React.FC = () => {
     };
 
     fetchEvents();
-
-    setEvents(events);
-    setFilteredEvents(events);
-    setIsLoading(false);
   }, []);
 
   useEffect(() => {
+    const filterEvents = (term: string, tab: string) => {
+      let result = [...events];
+      
+      // Filter by search term
+      if (term) {
+        result = result.filter(event => 
+          event.name.toLowerCase().includes(term.toLowerCase()) ||
+          event.description.toLowerCase().includes(term.toLowerCase()) ||
+          event.locationTitle.toLowerCase().includes(term.toLowerCase()) ||
+          event.category.toLowerCase().includes(term.toLowerCase())
+        );
+      }
+      
+      // Filter by tab
+      if (tab === 'upcoming') {
+        result = result.filter(event => new Date(event.eventDate) > new Date());
+      } else if (tab === 'past') {
+        result = result.filter(event => new Date(event.eventDate) <= new Date());
+      }
+      
+      setFilteredEvents(result);
+    };
+
     filterEvents(searchTerm, activeTab);
   }, [searchTerm, activeTab, events]);
-
-  const filterEvents = (term: string, tab: string) => {
-    let result = [...events];
-    
-    // Filter by search term
-    if (term) {
-      result = result.filter(event => 
-        event.name.toLowerCase().includes(term.toLowerCase()) ||
-        event.description.toLowerCase().includes(term.toLowerCase()) ||
-        event.locationTitle.toLowerCase().includes(term.toLowerCase()) ||
-        event.category.toLowerCase().includes(term.toLowerCase())
-      );
-    }
-    
-    // Filter by tab
-    if (tab === 'upcoming') {
-      result = result.filter(event => new Date(event.eventDate) > new Date());
-    } else if (tab === 'past') {
-      result = result.filter(event => new Date(event.eventDate) <= new Date());
-    }
-    
-    setFilteredEvents(result);
-  };
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
