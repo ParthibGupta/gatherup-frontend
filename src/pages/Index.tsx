@@ -23,7 +23,6 @@ const HomePage: React.FC = () => {
         const response = await eventApi.getAllEvents();
         if (response.events) {
           // Sort events by date (most recent first)
-          console.log(response.events)
           const sortedEvents = response.events.sort((a, b) => 
             new Date(b.eventDate).getTime() - new Date(a.eventDate).getTime()
           );

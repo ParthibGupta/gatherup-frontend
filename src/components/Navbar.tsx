@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import {
@@ -13,11 +13,12 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Bell, User, Calendar, Plus } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { toast } from '@/hooks/use-toast';
+import { useNotifications } from '@/contexts/NotificationContext';
 
 const Navbar: React.FC = () => {
   const { isAuthenticated, user, logout } = useAuth();
   const navigate = useNavigate();
-
+  const { unreadCount } = useNotifications();
   const handleLogout = async () => {
     await logout();
     navigate('/login');
@@ -62,7 +63,7 @@ const Navbar: React.FC = () => {
               <div className="relative cursor-pointer" onClick={handleNotificationClick}>
                 <Bell className="h-5 w-5 text-muted-foreground hover:text-foreground transition-colors" />
                 <Badge className="absolute -top-1 -right-1 h-4 w-4 p-0 flex items-center justify-center">
-                  2
+                  {unreadCount}
                 </Badge>
               </div>
               
