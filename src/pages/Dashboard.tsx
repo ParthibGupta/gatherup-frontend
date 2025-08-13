@@ -7,15 +7,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Calendar, Clock, Plus, User } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import { notificationApi, Notification, eventApi, Event } from '@/services/api';
+import { eventApi, Event } from '@/services/api';
 import EventCard from '@/components/EventCard';
 import { Skeleton } from '@/components/ui/skeleton';
-import { set } from 'date-fns';
 
 const Dashboard: React.FC = () => {
   const { isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
-  const [notifications, setNotifications] = useState<Notification[]>([]);
   const [organizedEvents, setorganizedEvents] = useState<Event[]>([]);
   const [joinedEvents, setjoinedEvents] = useState<Event[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -24,27 +22,10 @@ const Dashboard: React.FC = () => {
     const fetchDashboardData = async () => {
       setIsLoading(true);
       try {
-        // In a real implementation, these would be filtered API calls
-        // For demo, we'll use mock data
-        
-        // Mock notifications
-        // const mockNotifications = generateMockNotifications();
-        // setNotifications(mockNotifications);
-        
-        
-        // // Filter for events created by current user
-        // const userEvents = allEvents.filter(event => event.organizer.fullName === user?.id);
-        // setMyEvents(userEvents);
         const organizedResponse = await eventApi.getMyOrganizedEvents();
         setorganizedEvents(organizedResponse.data);
-
         const joinedResponse = await eventApi.getMyJoinedEvents();
         setjoinedEvents(joinedResponse.data);
-        // // Filter for upcoming events user is attending
-        // const upcoming = allEvents.filter(
-        //   event => new Date(event.eventDate) > new Date() && Math.random() > 0.5 // Random selection for demo
-        // );
-        // setjoinedEvents(upcoming);
       } catch (error) {
         console.error('Failed to fetch dashboard data:', error);
       } finally {
@@ -169,10 +150,7 @@ const Dashboard: React.FC = () => {
           </div>
           
           <div className="space-y-6">
-            <NotificationList 
-              notifications={notifications} 
-              onDismiss={handleDismissNotification} 
-            />
+            <NotificationList />
           </div>
         </div>
       </div>

@@ -142,8 +142,7 @@ const EventDetails: React.FC = () => {
     if (!event || !user) return;
 
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
+      await eventApi.leaveEvent(event.eventID);
       setAttendees(attendees.filter(a => a.userID !== user.id));
       setIsAttending(false);
 

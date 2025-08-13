@@ -130,29 +130,41 @@ export const eventApi = {
       method: "POST",
       body: JSON.stringify({ name, description }),
     }),
+  leaveEvent: (eventId: string) =>
+    request<void>(`/events/leave/${eventId}`, {
+      method: "POST",
+    }),
 };
 
 // Notification API
 export interface Notification {
-  id?: string;
+  notificationID: string;
   userID: string;
   eventID: string;
   description: string;
-  type: "invite" | "update";
+  status: string;
   createdAt: string;
+  updatedAt?: string;
+  event?: { eventID: string; name: string };
+  user?: { userID: string; fullName: string };
 }
 
 export const notificationApi = {
-  getAllNotifications: () => request<Notification[]>("/notifications"),
-  getNotificationById: (id: string) =>
-    request<Notification>(`/notifications/${id}`),
-  createNotification: (notification: Omit<Notification, "id">) =>
-    request<void>("/notifications", {
+  getAllNotifications: () => request<Notification[]>("/notification", {
+    method: "GET",
+  }),
+  createNotification: (notification: Omit<Notification, "notificationID" | "createdAt">) =>
+    request<void>("/notification", {
       method: "POST",
       body: JSON.stringify(notification),
     }),
+  updateNotification: (id: string, notification: Omit<Notification, "notificationID" | "updatedAt">) =>
+    request<void>(`/notification/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(notification),
+    }),
   deleteNotification: (id: string) =>
-    request<void>(`/notifications/${id}`, { method: "DELETE" }),
+    request<void>(`/notification/${id}`, { method: "DELETE" }),
 };
 
 // Invite API

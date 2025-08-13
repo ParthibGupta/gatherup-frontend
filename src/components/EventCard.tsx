@@ -14,7 +14,7 @@ interface EventCardProps {
 const EventCard: React.FC<EventCardProps> = ({ event }) => {
   //FIXXXXX
   const eventDate = new Date();
-  console.log('Event Date:', eventDate);
+
   const isUpcoming = eventDate > new Date();
   
   const getCategoryColor = (category: string) => {
