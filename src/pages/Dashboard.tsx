@@ -36,9 +36,9 @@ const Dashboard: React.FC = () => {
     fetchDashboardData();
   }, [isAuthenticated, navigate, user]);
 
-  const handleDismissNotification = (id: string) => {
-    setNotifications(notifications.filter(notification => notification.id !== id));
-  };
+  // const handleDismissNotification = (id: string) => {
+  //   setNotifications(notifications.filter(notification => notification.id !== id));
+  // };
 
   const renderEventSkeleton = () => (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
